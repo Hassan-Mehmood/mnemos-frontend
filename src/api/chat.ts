@@ -1,36 +1,32 @@
-import axios from "axios";
 import type { ChatRequest } from "@/types/chat";
+
+const API_BASE = "http://localhost:8000";
 
 export async function sendChatMessage(
   request: ChatRequest,
   onToken: (token: string) => void,
   signal?: AbortSignal
 ): Promise<void> {
-  const formData = new FormData();
-  formData.append("message", request.message);
-  formData.append("history", JSON.stringify(request.history));
-
-  if (request.files) {
-    request.files.forEach((f) => {
-      formData.append("files", f.file, f.name);
-    });
-  }
-
-  const response = await axios.post("/api/chat", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-    responseType: "stream",
+  const response = await fetch(`${API_BASE}/chat/invoke`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: 1,
+      chat_id: null,
+      message: request.message,
+    }),
     signal,
-    adapter: "fetch",
   });
 
-  const reader = (response.data as ReadableStream).getReader();
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+  const reader = response.body!.getReader();
   const decoder = new TextDecoder();
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    const chunk = decoder.decode(value, { stream: true });
-    onToken(chunk);
+    onToken(decoder.decode(value, { stream: true }));
   }
 }
 

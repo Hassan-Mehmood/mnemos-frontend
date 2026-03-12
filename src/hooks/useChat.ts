@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import type { Message, FileAttachment } from "@/types/chat";
-import { sendChatMessageMock } from "@/api/chat";
+import { sendChatMessage } from "@/api/chat";
 import { generateId } from "@/utils/ids";
 
 export function useChat() {

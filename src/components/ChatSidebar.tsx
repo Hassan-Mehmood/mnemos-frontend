@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MessageSquare, User } from "lucide-react";
-import { fetchChats } from "@/api/chats";
+import { fetchChats, fetchChatMessages } from "@/api/chats";
 import {
   Sidebar,
   SidebarContent,
@@ -22,9 +23,17 @@ export function ChatSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
 
+  const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+
   const { data: chats, isLoading } = useQuery({
     queryKey: ["chats"],
     queryFn: fetchChats,
+  });
+
+  const { data: messages, isLoading: isLoadingMessages } = useQuery({
+    queryKey: ["chat", selectedChatId],
+    queryFn: () => fetchChatMessages(selectedChatId!),
+    enabled: !!selectedChatId, // only runs when a chat is selected
   });
 
   return (
@@ -55,7 +64,11 @@ export function ChatSidebar() {
                 ))}
               {chats?.map((chat) => (
                 <SidebarMenuItem key={chat.id}>
-                  <SidebarMenuButton tooltip={chat.name}>
+                  <SidebarMenuButton
+                    tooltip={chat.name}
+                    isActive={selectedChatId === chat.id}
+                    onClick={() => setSelectedChatId(chat.id)}
+                  >
                     <MessageSquare className="h-4 w-4 shrink-0" />
                     {!collapsed && (
                       <span className="truncate">{chat.name}</span>

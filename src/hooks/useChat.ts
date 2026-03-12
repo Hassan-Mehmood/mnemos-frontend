@@ -1,78 +1,65 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import type { Message, FileAttachment } from "@/types/chat";
 import { sendChatMessage } from "@/api/chat";
 import { generateId } from "@/utils/ids";
+import { useChatContext } from "@/context/ChatContext";
+import { ChatMessages } from "@/api/chats";
+
 
 export function useChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+
+  const { initialMessages, selectedChatId } = useChatContext();
+  const [messages, setMessages] = useState<ChatMessages[]>(initialMessages);
+
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [selectedChatId, initialMessages]);
 
   const sendMessage = useCallback(
     async (content: string, files?: FileAttachment[]) => {
       if (!content.trim() && (!files || files.length === 0)) return;
 
-      const userMessage: Message = {
-        id: generateId(),
-        role: "user",
+      const userMessage: ChatMessages = {
+        sender: "user",
         content: content.trim(),
-        files,
-        timestamp: new Date(),
       };
 
-      const assistantId = generateId();
-      const assistantMessage: Message = {
-        id: assistantId,
-        role: "assistant",
-        content: "",
-        timestamp: new Date(),
-        isStreaming: true,
-      };
 
-      setMessages((prev) => [...prev, userMessage, assistantMessage]);
+      setMessages((prev) => [...prev, userMessage]);
       setIsStreaming(true);
 
       const controller = new AbortController();
       abortRef.current = controller;
 
       try {
-        const history = messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        }));
-
         await sendChatMessage(
-          { message: content, files, history },
-          (token) => {
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantId
-                  ? { ...m, content: m.content + token }
-                  : m
-              )
-            );
-          },
+          { message: content, files, chatId: selectedChatId, userId: 1 },
+          // (token) => {
+          //   setMessages((prev) =>
+          //     prev.map((m) =>
+          //       m.id === assistantId
+          //         ? { ...m, content: m.content + token }
+          //         : m
+          //     )
+          //   );
+          // },
           controller.signal
         );
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          setMessages((prev) =>
-            prev.map((m) =>
-              m.id === assistantId
-                ? { ...m, content: m.content || "Sorry, something went wrong." }
-                : m
-            )
-          );
-        }
-      } finally {
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId ? { ...m, isStreaming: false } : m
-          )
-        );
-        setIsStreaming(false);
-        abortRef.current = null;
+        console.log(err);
       }
+      // } finally {
+      //   setMessages((prev) =>
+      //     prev.map((m) =>
+      //       m.id === assistantId ? { ...m, isStreaming: false } : m
+      //     )
+      //   );
+      //   setIsStreaming(false);
+      //   abortRef.current = null;
+      // }
     },
     [messages]
   );

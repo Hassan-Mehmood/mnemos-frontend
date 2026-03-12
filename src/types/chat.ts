@@ -19,7 +19,9 @@ export interface Message {
 }
 
 export interface ChatRequest {
+  userId: number;
+  chatId: number;
   message: string;
   files?: FileAttachment[];
-  history: { role: Role; content: string }[];
+
 }

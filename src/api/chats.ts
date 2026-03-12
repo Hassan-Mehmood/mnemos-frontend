@@ -8,7 +8,7 @@ export interface ChatItem {
 }
 
 export interface ChatMessages {
-  id: number;
+  id?: number;
   content: string;
   sender: string;
 }

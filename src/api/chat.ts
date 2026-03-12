@@ -4,15 +4,15 @@ const API_BASE = "http://localhost:8000";
 
 export async function sendChatMessage(
   request: ChatRequest,
-  onToken: (token: string) => void,
+  // onToken: (token: string) => void,
   signal?: AbortSignal
 ): Promise<void> {
-  const response = await fetch(`${API_BASE}/chat/invoke`, {
+  const response = await fetch(`${API_BASE}/chats/invoke`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       user_id: 1,
-      chat_id: null,
+      chat_id: request.chatId,
       message: request.message,
     }),
     signal,
@@ -26,7 +26,7 @@ export async function sendChatMessage(
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    onToken(decoder.decode(value, { stream: true }));
+    // onToken(decoder.decode(value, { stream: true }));
   }
 }
 

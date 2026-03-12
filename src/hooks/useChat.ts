@@ -41,7 +41,7 @@ export function useChat() {
           content: m.content,
         }));
 
-        await sendChatMessageMock(
+        await sendChatMessage(
           { message: content, files, history },
           (token) => {
             setMessages((prev) =>

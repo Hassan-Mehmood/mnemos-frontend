@@ -8,9 +8,10 @@ export interface ChatItem {
 }
 
 export interface ChatMessages {
-  id?: number;
+  id?: number | string;
   content: string;
   sender: string;
+  isStreaming?: boolean;
 }
 
 interface ChatsResponse<T> {

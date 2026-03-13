@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { MessageSquare, User } from 'lucide-react';
+import { Plus, MessageSquare, User } from 'lucide-react';
 import { fetchChats, fetchChatMessages } from '@/api/chats';
 import {
     Sidebar,
@@ -38,21 +38,31 @@ export function ChatSidebar() {
         enabled: !!selectedChatId, // only runs when a chat is selected
     });
 
-    // Push fetched messages into context whenever they arrive
+    // Push fetched messages into context whenever they arrive (including cached data)
     useEffect(() => {
-        if (messages) setInitialMessages(messages);
-    }, [messages]);
+        if (messages) {
+            setInitialMessages(messages);
+        } else if (selectedChatId === null) {
+            // Clear messages when going to "New Chat"
+            setInitialMessages([]);
+        }
+    }, [messages, selectedChatId, setInitialMessages]);
 
     return (
         <Sidebar collapsible="icon">
             <SidebarHeader>
-                <div className="flex items-center gap-2 px-2 py-1">
-                    <MessageSquare className="h-5 w-5 shrink-0 text-sidebar-primary" />
-                    {!collapsed && (
-                        <span className="text-sm font-semibold text-sidebar-foreground">
-                            Chats
-                        </span>
-                    )}
+                <div className="px-2 py-2">
+                    <SidebarMenuButton
+                        onClick={() => {
+                            if (selectedChatId !== null) {
+                                setSelectedChatId(null);
+                            }
+                        }}
+                        className="w-full justify-start gap-2 text-sidebar-foreground border border-sidebar-border"
+                    >
+                        <Plus className="h-4 w-4 shrink-0" />
+                        {!collapsed && <span>New Chat</span>}
+                    </SidebarMenuButton>
                 </div>
             </SidebarHeader>
 
@@ -77,8 +87,9 @@ export function ChatSidebar() {
                                         tooltip={chat.name}
                                         isActive={selectedChatId === chat.id}
                                         onClick={() => {
-                                            setSelectedChatId(chat.id);
-                                            setInitialMessages([]);
+                                            if (selectedChatId !== chat.id) {
+                                                setSelectedChatId(chat.id);
+                                            }
                                         }}
                                     >
                                         <MessageSquare className="h-4 w-4 shrink-0" />

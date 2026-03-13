@@ -4,12 +4,14 @@ import { sendChatMessage } from "@/api/chat";
 import { generateId } from "@/utils/ids";
 import { useChatContext } from "@/context/ChatContext";
 import { ChatMessages } from "@/api/chats";
+import { useQueryClient } from "@tanstack/react-query";
 
 
 export function useChat() {
 
   const { initialMessages, selectedChatId } = useChatContext();
   const [messages, setMessages] = useState<ChatMessages[]>(initialMessages);
+  const queryClient = useQueryClient();
 
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -23,12 +25,20 @@ export function useChat() {
       if (!content.trim() && (!files || files.length === 0)) return;
 
       const userMessage: ChatMessages = {
+        id: generateId(),
         sender: "user",
         content: content.trim(),
       };
 
+      const assistantId = generateId();
+      const assistantMessage: ChatMessages = {
+        id: assistantId,
+        sender: "assistant",
+        content: "",
+        isStreaming: true,
+      };
 
-      setMessages((prev) => [...prev, userMessage]);
+      setMessages((prev) => [...prev, userMessage, assistantMessage]);
       setIsStreaming(true);
 
       const controller = new AbortController();
@@ -37,31 +47,37 @@ export function useChat() {
       try {
         await sendChatMessage(
           { message: content, files, chatId: selectedChatId, userId: 1 },
-          // (token) => {
-          //   setMessages((prev) =>
-          //     prev.map((m) =>
-          //       m.id === assistantId
-          //         ? { ...m, content: m.content + token }
-          //         : m
-          //     )
-          //   );
-          // },
+          (token) => {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? { ...m, content: m.content + token }
+                  : m
+              )
+            );
+          },
           controller.signal
         );
       } catch (err) {
         console.log(err);
+      } finally {
+        // Update local state
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, isStreaming: false } : m
+          )
+        );
+
+        setIsStreaming(false);
+        abortRef.current = null;
+
+        // Invalidate the cache so navigating back to this chat always fetches fresh messages
+        if (selectedChatId) {
+          queryClient.invalidateQueries({ queryKey: ['chat', selectedChatId] });
+        }
       }
-      // } finally {
-      //   setMessages((prev) =>
-      //     prev.map((m) =>
-      //       m.id === assistantId ? { ...m, isStreaming: false } : m
-      //     )
-      //   );
-      //   setIsStreaming(false);
-      //   abortRef.current = null;
-      // }
     },
-    [messages]
+    [selectedChatId, initialMessages, queryClient]
   );
 
   const abortStream = useCallback(() => {

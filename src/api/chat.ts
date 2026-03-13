@@ -4,7 +4,7 @@ const API_BASE = "http://localhost:8000";
 
 export async function sendChatMessage(
   request: ChatRequest,
-  // onToken: (token: string) => void,
+  onToken: (token: string) => void,
   signal?: AbortSignal
 ): Promise<void> {
   const response = await fetch(`${API_BASE}/chats/invoke`, {
@@ -26,7 +26,7 @@ export async function sendChatMessage(
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    // onToken(decoder.decode(value, { stream: true }));
+    onToken(decoder.decode(value, { stream: true }));
   }
 }
 

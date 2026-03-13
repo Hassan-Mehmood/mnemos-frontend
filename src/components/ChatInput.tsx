@@ -26,7 +26,6 @@ const ChatInput = ({ onSend, onAbort, isStreaming }: ChatInputProps) => {
     const [files, setFiles] = useState<FileAttachment[]>([]);
     const [isDragging, setIsDragging] = useState(false);
 
-    const {} = useChat();
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {

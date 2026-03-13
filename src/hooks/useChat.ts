@@ -71,6 +71,9 @@ export function useChat() {
         setIsStreaming(false);
         abortRef.current = null;
 
+        // Always refresh the sidebar chat list (creates new entry for new chats)
+        queryClient.invalidateQueries({ queryKey: ['chats'] });
+
         // Invalidate the cache so navigating back to this chat always fetches fresh messages
         if (selectedChatId) {
           queryClient.invalidateQueries({ queryKey: ['chat', selectedChatId] });

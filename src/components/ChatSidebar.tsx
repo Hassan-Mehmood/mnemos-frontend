@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Plus, MessageSquare, User } from 'lucide-react';
-import { fetchChats, fetchChatMessages } from '@/api/chats';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, MessageSquare, User, Trash2 } from 'lucide-react';
+import { fetchChats, fetchChatMessages, deleteChat } from '@/api/chats';
 import {
     Sidebar,
     SidebarContent,
@@ -24,8 +24,18 @@ export function ChatSidebar() {
     const { state } = useSidebar();
     const { selectedChatId, setSelectedChatId, setInitialMessages } =
         useChatContext();
+    const queryClient = useQueryClient();
 
     const collapsed = state === 'collapsed';
+
+    const { mutate: removeChatMutation } = useMutation({
+        mutationFn: deleteChat,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['chats'] });
+            setSelectedChatId(null);
+            setInitialMessages([]);
+        },
+    });
 
     const { data: chats, isLoading } = useQuery({
         queryKey: ['chats'],
@@ -82,7 +92,10 @@ export function ChatSidebar() {
                                     </SidebarMenuItem>
                                 ))}
                             {chats?.map((chat) => (
-                                <SidebarMenuItem key={chat.id}>
+                                <SidebarMenuItem
+                                    key={chat.id}
+                                    className="group/item"
+                                >
                                     <SidebarMenuButton
                                         tooltip={chat.name}
                                         isActive={selectedChatId === chat.id}
@@ -91,12 +104,25 @@ export function ChatSidebar() {
                                                 setSelectedChatId(chat.id);
                                             }
                                         }}
+                                        className="pr-1"
                                     >
                                         <MessageSquare className="h-4 w-4 shrink-0" />
                                         {!collapsed && (
-                                            <span className="truncate">
+                                            <span className="truncate flex-1">
                                                 {chat.name}
                                             </span>
+                                        )}
+                                        {!collapsed && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeChatMutation(chat.id);
+                                                }}
+                                                className="ml-auto opacity-0 group-hover/item:opacity-100 transition-opacity p-0.5 rounded hover:text-destructive"
+                                                aria-label="Delete chat"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </button>
                                         )}
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>

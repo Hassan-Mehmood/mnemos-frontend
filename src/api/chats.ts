@@ -32,3 +32,7 @@ export async function fetchChatMessages(id: number): Promise<ChatMessages[]> {
   console.log(data.data)
   return data.data;
 }
+
+export async function deleteChat(id: number): Promise<void> {
+  await axios.delete(`${API_BASE}/chats/${id}`);
+}

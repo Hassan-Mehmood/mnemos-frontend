@@ -46,7 +46,7 @@ export function useChat() {
 
       try {
         await sendChatMessage(
-          { message: content, files, chatId: selectedChatId, userId: 1 },
+          { message: content, files, chatId: selectedChatId, userId: '5347be62-0085-4e42-9f4e-b71a70e48c47' },
           (token) => {
             setMessages((prev) =>
               prev.map((m) =>

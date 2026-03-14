@@ -1,12 +1,11 @@
 // context/ChatContext.tsx
 import { createContext, useContext, useState, useEffect } from 'react';
-import type { Message } from '@/types/chat';
 import { ChatMessages } from '@/api/chats';
 import { useParams, useNavigate } from 'react-router-dom';
 
 interface ChatContextValue {
-    selectedChatId: number | null;
-    setSelectedChatId: (id: number | null) => void;
+    selectedChatId: string | null;
+    setSelectedChatId: (id: string | null) => void;
     initialMessages: ChatMessages[];
     setInitialMessages: (messages: ChatMessages[]) => void;
 }
@@ -17,9 +16,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     const { chatId } = useParams<{ chatId?: string }>();
     const navigate = useNavigate();
 
-    // Convert to number if it's valid, otherwise null
-    const parsedChatId =
-        chatId && !isNaN(Number(chatId)) ? parseInt(chatId, 10) : null;
+    const parsedChatId = chatId ?? null;
 
     const [initialMessages, setInitialMessages] = useState<ChatMessages[]>([]);
 
@@ -30,7 +27,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
     }, [parsedChatId]);
 
-    const setSelectedChatId = (id: number | null) => {
+    const setSelectedChatId = (id: string | null) => {
         if (id !== null) {
             navigate(`/${id}`);
         } else {

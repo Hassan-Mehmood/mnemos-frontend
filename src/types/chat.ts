@@ -19,8 +19,8 @@ export interface Message {
 }
 
 export interface ChatRequest {
-  userId: number;
-  chatId: number;
+  userId: string;
+  chatId: string | null;
   message: string;
   files?: FileAttachment[];
 

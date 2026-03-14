@@ -11,7 +11,7 @@ export async function sendChatMessage(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      user_id: 1,
+      user_id: request.userId,
       chat_id: request.chatId,
       message: request.message,
     }),

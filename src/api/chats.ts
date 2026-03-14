@@ -3,7 +3,7 @@ import axios from "axios";
 const API_BASE = "http://localhost:8000";
 
 export interface ChatItem {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -26,13 +26,13 @@ export async function fetchChats(): Promise<ChatItem[]> {
   return data.data;
 }
 
-export async function fetchChatMessages(id: number): Promise<ChatMessages[]> {
+export async function fetchChatMessages(id: string): Promise<ChatMessages[]> {
   const { data } = await axios.get<ChatsResponse<ChatMessages>>(`${API_BASE}/chats/${id}`);
 
   console.log(data.data)
   return data.data;
 }
 
-export async function deleteChat(id: number): Promise<void> {
+export async function deleteChat(id: string): Promise<void> {
   await axios.delete(`${API_BASE}/chats/${id}`);
 }

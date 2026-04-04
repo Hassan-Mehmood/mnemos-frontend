@@ -28,10 +28,12 @@ export function ChatSidebar() {
     const queryClient = useQueryClient();
     const { logout, user } = useAuth();
 
+    console.log(user);
+
     const collapsed = state === 'collapsed';
 
     const { mutate: removeChatMutation } = useMutation({
-        mutationFn: deleteChat,
+        mutationFn: (chatId: string) => deleteChat(chatId, user?.id || ''),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['chats'] });
             setSelectedChatId(null);
@@ -47,8 +49,8 @@ export function ChatSidebar() {
 
     const { data: messages } = useQuery({
         queryKey: ['chat', selectedChatId],
-        queryFn: () => fetchChatMessages(selectedChatId!),
-        enabled: !!selectedChatId, // only runs when a chat is selected
+        queryFn: () => fetchChatMessages(selectedChatId!, user?.id || ''),
+        enabled: !!selectedChatId && !!user?.id, // only runs when a chat is selected
     });
 
     // Push fetched messages into context whenever they arrive (including cached data)
@@ -154,7 +156,7 @@ export function ChatSidebar() {
                         </Avatar>
                         {!collapsed && (
                             <span className="truncate text-sm text-sidebar-foreground">
-                                User
+                                {user?.email ?? 'User'}
                             </span>
                         )}
                     </div>

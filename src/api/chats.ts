@@ -37,12 +37,12 @@ export async function fetchChats(userId: string): Promise<ChatItem[]> {
   return data.data;
 }
 
-export async function fetchChatMessages(id: string): Promise<ChatMessages[]> {
-  const { data } = await apiClient.get<ChatsResponse<ChatMessages>>(`/chats/${id}`);
+export async function fetchChatMessages(id: string, userId: string): Promise<ChatMessages[]> {
+  const { data } = await apiClient.get<ChatsResponse<ChatMessages>>(`/chats/${id}`, { params: { userId } });
   console.log(data.data);
   return data.data;
 }
 
-export async function deleteChat(id: string): Promise<void> {
-  await apiClient.delete(`/chats/${id}`);
+export async function deleteChat(id: string, userId: string): Promise<void> {
+  await apiClient.delete(`/chats/${id}`, { params: { userId } });
 }

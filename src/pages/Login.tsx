@@ -53,7 +53,11 @@ export default function Login() {
         try {
             const res = await login(data);
             if (res.success && res.data.accessToken) {
-                setAuth(res.data.accessToken);
+                setAuth(res.data.accessToken, {
+                    id: '',
+                    email: res.data.email,
+                    name: res.data.name,
+                });
                 toast({
                     title: 'Success',
                     description: 'Logged in successfully',

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, MessageSquare, User, Trash2 } from 'lucide-react';
+import { Plus, MessageSquare, User, Trash2, LogOut } from 'lucide-react';
 import { fetchChats, fetchChatMessages, deleteChat } from '@/api/chats';
+import { useAuth } from '@/context/AuthContext';
 import {
     Sidebar,
     SidebarContent,
@@ -25,6 +26,7 @@ export function ChatSidebar() {
     const { selectedChatId, setSelectedChatId, setInitialMessages } =
         useChatContext();
     const queryClient = useQueryClient();
+    const { logout, user } = useAuth();
 
     const collapsed = state === 'collapsed';
 
@@ -38,8 +40,9 @@ export function ChatSidebar() {
     });
 
     const { data: chats, isLoading } = useQuery({
-        queryKey: ['chats'],
-        queryFn: fetchChats,
+        queryKey: ['chats', user?.id],
+        queryFn: () => fetchChats(user?.id || ''),
+        enabled: !!user?.id,
     });
 
     const { data: messages } = useQuery({
@@ -142,16 +145,34 @@ export function ChatSidebar() {
             <SidebarSeparator />
 
             <SidebarFooter>
-                <div className="flex items-center gap-2 px-1">
-                    <Avatar className="h-7 w-7 shrink-0">
-                        <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground text-xs">
-                            <User className="h-4 w-4" />
-                        </AvatarFallback>
-                    </Avatar>
+                <div className="flex items-center justify-between gap-2 px-1 w-full">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <Avatar className="h-7 w-7 shrink-0">
+                            <AvatarFallback className="bg-sidebar-accent text-sidebar-accent-foreground text-xs">
+                                <User className="h-4 w-4" />
+                            </AvatarFallback>
+                        </Avatar>
+                        {!collapsed && (
+                            <span className="truncate text-sm text-sidebar-foreground">
+                                User
+                            </span>
+                        )}
+                    </div>
                     {!collapsed && (
-                        <span className="truncate text-sm text-sidebar-foreground">
-                            Username
-                        </span>
+                        <button
+                            onClick={logout}
+                            className="text-muted-foreground hover:text-foreground"
+                        >
+                            <LogOut className="h-4 w-4" />
+                        </button>
+                    )}
+                    {collapsed && (
+                        <button
+                            onClick={logout}
+                            className="w-full flex justify-center text-muted-foreground hover:text-foreground mt-2"
+                        >
+                            <LogOut className="h-4 w-4" />
+                        </button>
                     )}
                 </div>
             </SidebarFooter>

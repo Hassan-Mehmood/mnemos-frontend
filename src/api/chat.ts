@@ -1,15 +1,25 @@
 import type { ChatRequest } from "@/types/chat";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export async function sendChatMessage(
   request: ChatRequest,
   onToken: (token: string) => void,
   signal?: AbortSignal
 ): Promise<void> {
+
+  const token = localStorage.getItem('access_token');
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json"
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE}/chats/invoke`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       user_id: request.userId,
       chat_id: request.chatId,
